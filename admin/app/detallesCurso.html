@@ -1,0 +1,473 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8" />
+        <title>Control de matriculas</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta content="Premium Multipurpose Admin & Dashboard Template" name="description" />
+        <meta content="" name="author" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+        <!-- App favicon -->
+        <link rel="shortcut icon" href="assets/images/favicon.ico">
+
+        <!-- jvectormap -->
+        <link href="../plugins/jvectormap/jquery-jvectormap-2.0.2.css" rel="stylesheet">
+
+        <!-- App css -->
+        <link href="assets/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+        <link href="assets/css/jquery-ui.min.css" rel="stylesheet">
+        <link href="assets/css/icons.min.css" rel="stylesheet" type="text/css" />
+        <link href="assets/css/metisMenu.min.css" rel="stylesheet" type="text/css" />
+        <link href="../plugins/daterangepicker/daterangepicker.css" rel="stylesheet" type="text/css" />
+        <link href="assets/css/app.min.css" rel="stylesheet" type="text/css" />
+        
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <!-- Asegúrate de incluir la librería de SweetAlert en tu HTML -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script src="scripts/menuLoader.js"></script>
+
+        <script>
+        // Función para validar el pago del profesor
+
+        // Función para cargar los detalles de pago
+        async function loadPaymentDetails() {
+            const url = 'http://127.0.0.1/api/ListarPagosProfeDetalle.php';
+            const tokenSesion = sessionStorage.getItem('tokenSesion'); // Usamos sessionStorage como ejemplo
+            const idCurso = 40; // Cambia esto por el ID del curso que necesites
+
+            const body = {
+                tokenSesion: tokenSesion,
+                idCurso: idCurso
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.statusText}`);
+                }
+
+                const data = await response.json(); // Almacenar los datos obtenidos
+
+                // Llenar la tabla de pagos
+                renderPaymentTable(data.detalles);
+
+                // Mostrar el monto total en el h4
+                const totalMonto = "₡" + (data.totalMonto || "0.00"); // Asegurar que tenga un valor predeterminado
+                document.getElementById('MontoTotalPago').textContent = totalMonto;
+
+                // Mostrar la alerta de información importante
+                Swal.fire({
+                    title: 'Información importante',
+                    text: 'El monto total es calculado con base a la matrícula y continuidad de los estudiantes. Si hay más matrículas pero no se ven reflejadas aquí, es posible que el estudiante no ha continuado con el curso o no haya pagado la matrícula.',
+                    icon: 'info',
+                    confirmButtonText: 'Entendido'
+                });
+
+            } catch (error) {
+                console.error('Error al consultar los pagos:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error al cargar los pagos. Intente nuevamente más tarde.',
+                    confirmButtonText: 'Aceptar'
+                });
+            }
+        }
+
+        // Función para renderizar la tabla de pagos
+        function renderPaymentTable(pagos) {
+            const matriculaTableBody = document.getElementById('matriculaTableBody');
+            matriculaTableBody.innerHTML = ''; // Limpiar contenido anterior
+
+            pagos.forEach((pago) => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-100 transition duration-300'; // Color de fondo al pasar el mouse
+
+                row.innerHTML = `
+                    <td class="border-b border-gray-200 text-center py-2">${pago.Id}</td>
+                    <td class="border-b border-gray-200 text-center py-2">${pago.NombreCurso}</td>
+                    <td class="border-b border-gray-200 text-center py-2">${pago.Nombre}</td>
+                    <td class="border-b border-gray-200 text-center py-2">${pago.Cedula}</td>
+                    <td class="border-b border-gray-200 text-center py-2">${pago.Telefono}</td>
+                    <td class="border-b border-gray-200 text-center py-2">${pago.Correo}</td>
+                    <td class="border-b border-gray-200 text-center py-2 font-semibold text-red-600">₡ ${pago.Monto}</td>
+                `;
+
+                matriculaTableBody.appendChild(row);
+            });
+        }
+
+        // Llama a la función de validación al cargar la página
+        document.addEventListener("DOMContentLoaded", validarPagoProfesor);
+        </script>
+
+        
+        
+        
+    </head>
+
+    <body class="dark-sidenav">
+        
+              <!-- Left Sidenav -->
+        <div class="left-sidenav">
+            <!-- LOGO -->
+            <div class="brand">
+                <a href="home.html" class="logo">
+                    <h4 style="color: aliceblue;" alt="logo-small" class="logo-sm">Sistema de matriculas</h4>
+                </a>
+            </div>
+            <!--end logo-->
+            <div id="menuContainer"></div>
+        </div>
+        <!-- end left-sidenav-->
+        
+
+        <div class="page-wrapper">
+            <!-- Top Bar Start -->
+            <div class="topbar">            
+                <!-- Navbar -->
+                <nav class="navbar-custom">    
+                    <ul class="list-unstyled topbar-nav float-right mb-0">  
+
+                        <li class="dropdown">
+                            <a class="nav-link dropdown-toggle waves-effect waves-light nav-user" data-toggle="dropdown" href="#" role="button"
+                                aria-haspopup="false" aria-expanded="false">
+                                <span class="ml-1 nav-user-name hidden-sm" id="userNameSpan"></span>
+                                
+                                
+                                <img src="assets/images/users/user-5.png" alt="profile-user" class="rounded-circle" />                                 
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right">
+                                
+                                <a class="dropdown-item" href="#" id="logoutButton">
+                                    <i data-feather="power" class="align-self-center icon-xs icon-dual mr-1"></i> Logout
+                                </a>
+
+                                <script>
+
+                                    document.getElementById('logoutButton').addEventListener('click', function(event) {
+                                        event.preventDefault(); // Evitar que la página se recargue al hacer clic en el enlace
+                                
+                                        // Obtener el idUsuario de la sesión
+                                        let idUsuario = sessionStorage.getItem('id'); // O donde almacenes el idUsuario
+                                
+                                        // Verificar si el idUsuario está presente en la sesión
+                                        if (idUsuario) {
+                                            // Realizar la solicitud API para cerrar sesión
+                                            fetch('http://127.0.0.1/api/logout.php', {
+                                                method: 'POST',
+                                                headers: {
+                                                    'Content-Type': 'application/json'
+                                                },
+                                                body: JSON.stringify({
+                                                    idUsuario: idUsuario
+                                                })
+                                            })
+                                            .then(response => response.json())
+                                            .then(data => {
+                                                // Eliminar siempre las variables de sesión
+                                                sessionStorage.removeItem('tokenSesion'); // Eliminar el idUsuario de la sesión
+                                                sessionStorage.removeItem('id'); // Eliminar otros datos de sesión si es necesario
+                                                sessionStorage.removeItem('email'); // Eliminar otros datos de sesión si es necesario
+                                                sessionStorage.removeItem('fullName'); // Eliminar otros datos de sesión si es necesario
+
+                                                if (data.mensaje === 'Sesión cerrada exitosamente') {
+                                                    // Mostrar SweetAlert de éxito y redirigir
+                                                    Swal.fire({
+                                                        icon: 'success',
+                                                        title: 'Sesión cerrada exitosamente',
+                                                        showConfirmButton: false,
+                                                        timer: 1500
+                                                    }).then(() => {
+                                                        window.location.href = 'index.html'; // Redirigir a la página de inicio
+                                                    });
+                                                } else {
+                                                    // Si la respuesta no es exitosa, mostrar mensaje de error con SweetAlert
+                                                    Swal.fire({
+                                                        icon: 'error',
+                                                        title: 'Error',
+                                                        text: 'Hubo un error al cerrar la sesión.',
+                                                    }).then(() => {
+                                                        window.location.href = 'index.html'; // Redirigir a la página de inicio
+                                                    });
+                                                }
+                                            })
+                                            .catch(error => {
+                                                console.error('Error al cerrar sesión:', error);
+                                
+                                                // Mostrar SweetAlert en caso de error en la solicitud
+                                                Swal.fire({
+                                                    icon: 'error',
+                                                    title: 'Error',
+                                                    text: 'Ocurrió un error al intentar cerrar sesión.',
+                                                }).then(() => {
+                                                    window.location.href = 'index.html'; // Redirigir a la página de inicio
+                                                });
+                                            });
+                                        } else {
+                                            // Si no hay idUsuario en la sesión, eliminar las variables de sesión y redirigir
+                                            sessionStorage.removeItem('tokenSesion'); // Eliminar el idUsuario de la sesión
+                                            sessionStorage.removeItem('id'); // Eliminar otros datos de sesión si es necesario
+                                            sessionStorage.removeItem('email'); // Eliminar otros datos de sesión si es necesario
+                                            sessionStorage.removeItem('fullName'); // Eliminar otros datos de sesión si es necesario
+
+                                
+                                            Swal.fire({
+                                                icon: 'warning',
+                                                title: 'No hay sesión activa',
+                                                text: 'Por favor inicie sesión primero.',
+                                            }).then(() => {
+                                                window.location.href = 'index.html'; // Redirigir a la página de inicio
+                                            });
+                                        }
+                                    });
+                                </script>
+                                
+
+                            </div>
+                        </li>
+                    </ul><!--end topbar-nav-->
+        
+                    <ul class="list-unstyled topbar-nav mb-0">                        
+                        <li>
+                            <button class="nav-link button-menu-mobile">
+                                <i data-feather="menu" class="align-self-center topbar-icon"></i>
+                            </button>
+                        </li> 
+                                                  
+                    </ul>
+                </nav>
+                <!-- end navbar-->
+            </div>
+            <!-- Top Bar End -->
+
+            <!-- Page Content-->
+            <div class="page-content">
+                <div class="container-fluid">
+                    <!-- Page-Title -->
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="page-title-box">
+                                <div class="row">
+                                    <div class="col">
+                                        <h4 class="page-title">Detalles de pago a Profesor</h4>
+                                    </div><!--end col-->
+                                </div><!--end row-->                                                              
+                            </div><!--end page-title-box-->
+                        </div><!--end col-->
+                    </div><!--end row-->
+                    
+                    <div class="row justify-content-center">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body">
+                    
+                                    <div id="PagarProfesor" class="col">
+                                        <!-- Botón al lado del título -->
+                                        <button type="button" class="btn btn-primary" onclick="openMovementModalPagarProfe(getElementById('MontoTotalPago').value)">Pagar</button>
+
+                                    </div><!--end col--> 
+
+                                    <div id="PagarProfesor" class="col">
+                                        <!-- Botón al lado del título -->
+                                        <h4 data-bs-toggle="tooltip" data-bs-placement="top" title="Este es el monto total que debes pagar">Monto total a cancelar:</h4>
+                                        <h4 id="MontoTotalPago">0.00</h4>
+                                    </div><!--end col--> 
+                                    <br>
+                                    <!-- Tabla de matrículas -->
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <h4>Detalle de pago:</h4>
+                                            <thead class="thead-light">
+                                                <tr>
+                                                    <th class="text-center">Id de Matrícula</th>
+                                                    <th class="text-center">Nombre del Curso</th>
+                                                    <th class="text-center">Nombre Estudiante</th>
+                                                    <th class="text-center">Cédula Estudiante</th>
+                                                    <th class="text-center">Teléfono</th>
+                                                    <th class="text-center">Correo</th>
+                                                    <th class="text-center">Monto a cancelar</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="matriculaTableBody">
+                                                <!-- Las filas de la tabla se llenarán dinámicamente aquí -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                    
+                                    <!-- Paginación -->
+                                    <div class="row">
+                                        <div class="col">
+                                            <ul class="pagination justify-content-center mt-3" id="pagination">
+                                                <!-- Paginación dinámica -->
+                                            </ul>
+                                        </div>
+                                    </div>
+                                   
+
+                                    <!-- Modal para registrar movimiento -->
+                                    <div class="modal fade" id="crearMovimientoModal" tabindex="-1" role="dialog" aria-labelledby="crearMovimientoModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="crearMovimientoModalLabel">Registrar Movimiento</h5>
+                                                    <button type="button" class="close" onclick="CloseModal('crearMovimientoModal')" aria-label="Close">
+                                                        <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <form id="movementForm">
+                                                        <div class="form-group">
+                                                            <label for="notasProfesor">Notas del Profesor</label>
+                                                            <textarea class="form-control" id="notasProfesor" name="notasProfesor" rows="3" required></textarea>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="montoPagoProfe">Monto a pagar</label>
+                                                            <input type="text" class="form-control" id="montoPagoProfe" name="montoPagoProfe" required readonly>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="comprobanteProfesor">Comprobante del Profesor</label>
+                                                            <input type="text" class="form-control" id="comprobanteProfesor" name="comprobanteProfesor" required>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" onclick="CloseModal('crearMovimientoModal')">Cerrar</button>
+                                                    <button type="button" class="btn btn-primary" onclick="submitMovementProfesorForm()">Registrar Movimiento</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                   
+                                </div><!-- end card-body -->
+                            </div><!-- end card -->
+                        </div><!-- end col -->
+                    </div><!-- end row -->
+            
+                    <!-- Modal para registrar movimiento pago a -->
+                    
+                   
+
+                <footer class="footer text-center text-sm-left">
+                    &copy; <span id="currentYear"></span> Dastyle 
+                    <span class="d-none d-sm-inline-block float-right">
+                        Crafted with <i class="mdi mdi-heart text-danger"></i> by Media Dev
+                    </span>
+                </footer><!--end footer-->
+                
+                
+            </div>
+            <!-- end page content -->
+        </div>
+        <!-- end page-wrapper -->
+
+        
+
+
+        <!-- jQuery  -->
+        <script src="assets/js/jquery.min.js"></script>
+        <script src="assets/js/bootstrap.bundle.min.js"></script>
+        <script src="assets/js/metismenu.min.js"></script>
+        <script src="assets/js/waves.js"></script>
+        <script src="assets/js/feather.min.js"></script>
+        <script src="assets/js/simplebar.min.js"></script>
+        <script src="assets/js/jquery-ui.min.js"></script>
+        <script src="assets/js/moment.js"></script>
+        <script src="../plugins/daterangepicker/daterangepicker.js"></script>
+
+        <script src="../plugins/apex-charts/apexcharts.min.js"></script>
+        <script src="../plugins/jvectormap/jquery-jvectormap-2.0.2.min.js"></script>
+        <script src="../plugins/jvectormap/jquery-jvectormap-us-aea-en.js"></script>
+        <script src="assets/pages/jquery.analytics_dashboard.init.js"></script>
+        <script src="scripts/validacionRoles.js"></script>
+       <script src="scripts/listarDetallesPagoProfe.js"></script>
+       <script src="scripts/registrarPagoProfesor.js"></script>
+        <!-- App js -->
+        <script src="assets/js/app.js"></script>
+
+        <script>
+            
+            function CloseModal(modalName) {
+                const modal = document.getElementById(modalName);
+            $(modal).modal('hide'); // Usando jQuery para abrir el modal
+            }
+
+        </script>
+        <script>
+            window.onload = function() {
+                // Obtener el nombre de usuario desde sessionStorage
+                const userName = sessionStorage.getItem('fullName'); // Ajusta el nombre de la variable según lo necesites
+                
+                
+
+                // Asignar el nombre de usuario al elemento en la página
+                if (userName) {
+                    document.getElementById('userNameSpan').textContent = userName;
+                } else {
+                    document.getElementById('userNameSpan').textContent = 'Invitado';
+                }
+        
+                // Obtener el token de sesión
+                let tokenSesion = sessionStorage.getItem("tokenSesion");
+        
+                if (!tokenSesion) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '¡Sesión vencida!',
+                        text: 'Tu sesión ha expirado, por favor vuelve a iniciar sesión.',
+                    }).then(() => {
+                        window.location.href = "index.html";
+                    });
+                } else {
+                    fetch('http://127.0.0.1/api/validaSesion.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            "tokenSesion": tokenSesion
+                        })
+                    })
+                    .then(response => {
+                        if (response.status !== 200) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: '¡Sesión vencida!',
+                                text: 'Tu sesión ha expirado, por favor vuelve a iniciar sesión.',
+                            }).then(() => {
+                                window.location.href = "index.html";
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: '¡Error de conexión!',
+                            text: 'No se pudo conectar con el servidor. Por favor, intenta más tarde.',
+                        }).then(() => {
+                            window.location.href = "index.html";
+                        });
+                    });
+                }
+            };
+            
+        </script>
+        
+
+        
+       
+    </body>
+
+</html>

@@ -1,0 +1,975 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <script src="scripts/guardarImagen.js"></script>
+
+        <meta charset="utf-8" />
+        <title>Control de matriculas - Administración de usuarios</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta content="Premium Multipurpose Admin & Dashboard Template" name="description" />
+        <meta content="" name="author" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+        <!-- App favicon -->
+        <link rel="shortcut icon" href="assets/images/favicon.ico">
+
+        <!-- jvectormap -->
+        <link href="../plugins/jvectormap/jquery-jvectormap-2.0.2.css" rel="stylesheet">
+
+        <!-- App css -->
+        <link href="assets/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+        <link href="assets/css/jquery-ui.min.css" rel="stylesheet">
+        <link href="assets/css/icons.min.css" rel="stylesheet" type="text/css" />
+        <link href="assets/css/metisMenu.min.css" rel="stylesheet" type="text/css" />
+        <link href="../plugins/daterangepicker/daterangepicker.css" rel="stylesheet" type="text/css" />
+        <link href="assets/css/app.min.css" rel="stylesheet" type="text/css" />
+        
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        <!-- <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-storage.js"></script> -->
+        <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-storage-compat.js"></script>
+         <script src="scripts/menuLoader.js"></script>
+
+
+    </head>
+
+    <body class="dark-sidenav">
+        
+        <!-- Left Sidenav -->
+        <div class="left-sidenav">
+            <!-- LOGO -->
+            <div class="brand">
+                <a href="home.html" class="logo">
+                    <h4 style="color: aliceblue;" alt="logo-small" class="logo-sm">Sistema de matriculas</h4>
+                </a>
+            </div>
+            <!--end logo-->
+            <div id="menuContainer"></div>
+        </div>
+        <!-- end left-sidenav-->
+        
+
+        <div class="page-wrapper">
+            <!-- Top Bar Start -->
+            <div class="topbar">            
+                <!-- Navbar -->
+                <nav class="navbar-custom">    
+                    <ul class="list-unstyled topbar-nav float-right mb-0">  
+
+                        <li class="dropdown">
+                            <a class="nav-link dropdown-toggle waves-effect waves-light nav-user" data-toggle="dropdown" href="#" role="button"
+                                aria-haspopup="false" aria-expanded="false">
+                                <span class="ml-1 nav-user-name hidden-sm" id="userNameSpan"></span>
+                                
+                                
+                                <img src="assets/images/users/user-5.png" alt="profile-user" class="rounded-circle" />                                 
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right">
+                                <a class="dropdown-item" href="#" id="logoutButton">
+                                    <i data-feather="power" class="align-self-center icon-xs icon-dual mr-1"></i> Logout
+                                </a>
+
+                                <script>
+                                    document.getElementById('logoutButton').addEventListener('click', function(event) {
+                                        event.preventDefault(); // Evitar que la página se recargue al hacer clic en el enlace
+                                
+                                        // Obtener el idUsuario de la sesión
+                                        let idUsuario = sessionStorage.getItem('id'); // O donde almacenes el idUsuario
+                                
+                                        // Verificar si el idUsuario está presente en la sesión
+                                        if (idUsuario) {
+                                            // Realizar la solicitud API para cerrar sesión
+                                            fetch('http://127.0.0.1/api/logout.php', {
+                                                method: 'POST',
+                                                headers: {
+                                                    'Content-Type': 'application/json'
+                                                },
+                                                body: JSON.stringify({
+                                                    idUsuario: idUsuario
+                                                })
+                                            })
+                                            .then(response => response.json())
+                                            .then(data => {
+                                                // Eliminar siempre las variables de sesión
+                                                sessionStorage.removeItem('tokenSesion'); // Eliminar el idUsuario de la sesión
+                                                sessionStorage.removeItem('id'); // Eliminar otros datos de sesión si es necesario
+                                                sessionStorage.removeItem('email'); // Eliminar otros datos de sesión si es necesario
+                                                sessionStorage.removeItem('fullName'); // Eliminar otros datos de sesión si es necesario
+
+                                                if (data.mensaje === 'Sesión cerrada exitosamente') {
+                                                    // Mostrar SweetAlert de éxito y redirigir
+                                                    Swal.fire({
+                                                        icon: 'success',
+                                                        title: 'Sesión cerrada exitosamente',
+                                                        showConfirmButton: false,
+                                                        timer: 1500
+                                                    }).then(() => {
+                                                        window.location.href = 'index.html'; // Redirigir a la página de inicio
+                                                    });
+                                                } else {
+                                                    // Si la respuesta no es exitosa, mostrar mensaje de error con SweetAlert
+                                                    Swal.fire({
+                                                        icon: 'error',
+                                                        title: 'Error',
+                                                        text: 'Hubo un error al cerrar la sesión.',
+                                                    }).then(() => {
+                                                        window.location.href = 'index.html'; // Redirigir a la página de inicio
+                                                    });
+                                                }
+                                            })
+                                            .catch(error => {
+                                                console.error('Error al cerrar sesión:', error);
+                                
+                                                // Mostrar SweetAlert en caso de error en la solicitud
+                                                Swal.fire({
+                                                    icon: 'error',
+                                                    title: 'Error',
+                                                    text: 'Ocurrió un error al intentar cerrar sesión.',
+                                                }).then(() => {
+                                                    window.location.href = 'index.html'; // Redirigir a la página de inicio
+                                                });
+                                            });
+                                        } else {
+                                            // Si no hay idUsuario en la sesión, eliminar las variables de sesión y redirigir
+                                            sessionStorage.removeItem('id');
+                                            sessionStorage.removeItem('otroDato');
+                                
+                                            Swal.fire({
+                                                icon: 'warning',
+                                                title: 'No hay sesión activa',
+                                                text: 'Por favor inicie sesión primero.',
+                                            }).then(() => {
+                                                window.location.href = 'index.html'; // Redirigir a la página de inicio
+                                            });
+                                        }
+                                    });
+                                </script>
+                                
+
+                            </div>
+                        </li>
+                    </ul><!--end topbar-nav-->
+        
+                    <ul class="list-unstyled topbar-nav mb-0">                        
+                        <li>
+                            <button class="nav-link button-menu-mobile">
+                                <i data-feather="menu" class="align-self-center topbar-icon"></i>
+                            </button>
+                        </li> 
+                                                  
+                    </ul>
+                </nav>
+                <!-- end navbar-->
+            </div>
+            <!-- Top Bar End -->
+
+            <!-- Page Content-->
+            <div class="page-content">
+                <div class="container-fluid">
+                    <!-- Page-Title -->
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="page-title-box">
+                                <div class="row">
+                                    <div class="col">
+                                        <h4 class="page-title">Administración de cursos</h4>
+
+                                        </div><!--end col-->
+                                    
+                                        <div class="col">
+                                            <!-- Botón al lado del título -->
+                                            <button type="button" class="btn btn-primary" onclick="openModal()">Crear Curso</button>
+
+                                        </div><!--end col--> 
+                                </div><!--end row-->                                                              
+                            </div><!--end page-title-box-->
+                        </div><!--end col-->
+                    </div><!--end row-->
+                    <!-- end page title end breadcrumb -->
+                    <div class="row justify-content-center">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="text-dark mb-1 font-weight-semibold">Lista de Cursos</h4>
+                    
+                                    <!-- Caja de búsqueda -->
+                                    <div class="mb-3">
+                                        <input type="text" class="form-control" id="searchInput" placeholder="Buscar por nombre del curso">
+                                    </div>
+                    
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead class="thead-light">
+                                                <tr>
+                                                    <th>Código de curso</th>
+                                                    <th>Nombre del curso</th>
+                                                    <th>Estado</th>
+                                                    <th>Cargar Imagen</th>
+                                                    <th>Ver horarios</th>
+                                                    <th>Precio</th>
+                                                    <th>Acciones</th>
+
+                                                </tr>
+                                            </thead>
+                                            <tbody id="userTableBody">
+                                                <!-- Las filas de la tabla se llenarán dinámicamente -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                    
+                                    <!-- Paginación -->
+                                    <div class="row">
+                                        <div class="col">
+                                            <ul class="pagination justify-content-center mt-3" id="pagination">
+                                                <!-- Paginación dinámica -->
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div><!--end card-body-->
+                            </div><!--end card-->
+                        </div><!--end col-->
+                    </div><!--end row-->
+                    
+                <!-- Modal de creación () -->
+                    <!-- Modal -->
+                    <!-- Modal para Capturar Curso -->
+                    <div class="modal fade" id="createCourseModal" tabindex="-1" role="dialog" aria-labelledby="createCourseModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="createCourseModalLabel">Crear Curso</h5>
+                                    <button type="button" class="close" onclick="closeModal('createCourseModal')" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="createCourseForm">
+                                        <div class="form-group">
+                                            <label for="nombreCurso">Nombre del Curso</label>
+                                            <input type="text" class="form-control" id="nombreCurso" name="nombreCurso" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="descripcion">Descripción</label>
+                                            <textarea class="form-control" id="descripcion" name="descripcion" rows="3" required></textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="fechaInicio">Fecha de Inicio</label>
+                                            <input type="date" class="form-control" id="fechaInicio" name="fechaInicio" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="fechaFin">Fecha de Fin</label>
+                                            <input type="date" class="form-control" id="fechaFin" name="fechaFin" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="precio">Precio</label>
+                                            <input type="number" class="form-control" id="precio" name="precio" required step="0.01" min="0">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="createPorcentajeProfe">Porcentaje de pago al profesor</label>
+                                            <input type="number" class="form-control" id="createPorcentajeProfe" name="createPorcentajeProfe" required min="1" max="100" oninput="validarPorcentaje(this)">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="CantidadCuotasCurso">Cantidad de cuotas</label>
+                                            <input type="number" class="form-control" id="CantidadCuotasCurso" name="CantidadCuotasCurso" required min="1" max="100" oninput="validarPorcentaje(this)">
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" onclick="closeModal('createCourseModal')">Cerrar</button>
+                                    <button type="button" class="btn btn-primary" onclick="submitForm()">Crear Curso</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <!-- Modal de Edición  -->
+                    <div class="modal fade" id="editCourseModal" tabindex="-1" role="dialog" aria-labelledby="editCourseModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="editCourseModalLabel">Editar Curso</h5>
+                                    <button type="button" class="close" onclick="closeModal('editCourseModal')" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="editCourseForm">
+                                        <!-- Campo oculto para almacenar el ID del curso que se está editando -->
+                                        <div class="form-group">
+                                            <label for="editIdUser">Id de usuario</label>
+                                            <input type="text" id="editCourseId" class="form-control" readonly />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="editNombreCurso">Nombre del Curso</label>
+                                            <input type="text" class="form-control" id="editNombreCurso" name="editNombreCurso" required>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="editDescripcion">Descripción</label>
+                                            <textarea class="form-control" id="editDescripcion" name="editDescripcion" rows="3" required></textarea>
+                                        </div>
+                                        
+                                        
+                                        <div class="form-group">
+                                            <label for="editFechaInicio">Fecha de Inicio</label>
+                                            <input type="date" class="form-control" id="editFechaInicio" name="editFechaInicio" required>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="editFechaFin">Fecha de Fin</label>
+                                            <input type="date" class="form-control" id="editFechaFin" name="editFechaFin" required>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="editprecioModal">Precio</label>
+                                            <input type="number" class="form-control" id="editprecioModal" name="editprecioModal" required>
+                                        </div>
+                    
+                                        <div class="form-group">
+                                            <label for="editPorcentajeProfe">Porcentaje de pago al profesor</label>
+                                            <input type="number" class="form-control" id="editPorcentajeProfe" name="editPorcentajeProfe" required min="1" max="100" oninput="validarPorcentaje(this)">
+                                        </div>
+                    
+                                        
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" onclick="closeModal('editCourseModal')">Cerrar</button>
+                                    <button type="button" class="btn btn-primary" onclick="submitEditCursoForm()">Guardar Cambios</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    
+                    <!-- Modal de carga de imagen  -->
+
+                    <div class="modal fade" id="uploadImageModal" tabindex="-1" aria-labelledby="uploadImageModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="uploadImageModalLabel">Subir Imagen</h5>
+                                <button type="button" class="close" onclick="closeModal('uploadImageModal')" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="uploadForm">
+                                    <!-- Campo ID Curso no editable -->
+                                    <div class="form-group">
+                                        <label for="idCursoImage">ID Curso</label>
+                                        <input type="text" id="idCursoImage" class="form-control" readonly>
+                                    </div>
+                                    <!-- Campo Nombre del Curso no editable -->
+                                    <div class="form-group">
+                                        <label for="nombreCursoImage">Nombre del Curso</label>
+                                        <input type="text" id="nombreCursoImage" class="form-control" readonly>
+                                    </div>
+                                    <!-- Input para subir archivo, limitado a jpg o png -->
+                                    <div class="form-group">
+                                        <label for="fileInput">Seleccionar archivo</label>
+                                        <input type="file" id="fileInput" class="form-control" accept=".jpg, .jpeg, .png">
+                                        <small id="fileErrorMessage" class="text-danger" style="display: none;">Solo se permiten archivos JPG o PNG.</small>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Subir Imagen</button>
+                                </form>
+                                <div id="progressContainer" style="display: none;">
+                                    <progress id="progressBar" value="0" max="100"></progress>
+                                    <span id="progressText"></span>
+                                </div>
+                                <div id="downloadURL" style="display: none;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <script>
+                        document.getElementById('fileInput').addEventListener('change', function(event) {
+                            const file = event.target.files[0];
+                            const allowedTypes = ['image/jpeg', 'image/png'];
+                            const errorMessage = document.getElementById('fileErrorMessage');
+                    
+                            if (file && !allowedTypes.includes(file.type)) {
+                                errorMessage.style.display = 'block';  // Mostrar mensaje de error
+                                event.target.value = '';  // Limpiar el campo de archivo
+                            } else {
+                                errorMessage.style.display = 'none';  // Ocultar mensaje si el archivo es válido
+                            }
+                        });
+                    </script>
+                    
+                </div>
+                    
+                <div class="modal fade" id="createScheduleModal" tabindex="-1" role="dialog" aria-labelledby="createScheduleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <!-- El nombre del curso se actualizará dinámicamente aquí -->
+                                <h5 class="modal-title" id="createScheduleModalLabel">Crear Horario para <span id="courseName"></span></h5>
+                                <button type="button" class="close" onclick="closeModal('createScheduleModal')" aria-label="Close">
+                                    <span>&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="createScheduleForm">
+                                    <div class="form-group">
+                                        <label for="HorarioCursoId">Id de curso</label>
+                                        <input type="text" id="HorarioCursoId" class="form-control" readonly />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="scheduleDay">Día</label>
+                                        <select class="form-control" id="scheduleDay" name="scheduleDay" required>
+                                            <option value="">Seleccionar día</option>
+                                            <option value="lunes">Lunes</option>
+                                            <option value="martes">Martes</option>
+                                            <option value="miércoles">Miércoles</option>
+                                            <option value="jueves">Jueves</option>
+                                            <option value="viernes">Viernes</option>
+                                            <option value="sábado">Sábado</option>
+                                            <option value="domingo">Domingo</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="startTime">Hora de Inicio</label>
+                                        <input type="time" class="form-control" id="startTime" name="startTime" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="endTime">Hora de Fin</label>
+                                        <input type="time" class="form-control" id="endTime" name="endTime" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="professor">Profesor</label>
+                                        <select class="form-control" id="professorCreate" name="professor" required>
+                                            <option value="">Seleccionar Profesor</option>
+                                            <!-- Aquí se llenarán los profesores dinámicamente -->
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="cupo">Cupo</label>
+                                        <input type="number" class="form-control" id="cupo" name="cupo" required>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" onclick="closeModal('createScheduleModal')">Cerrar</button>
+                                <button type="button" class="btn btn-primary" onclick="submitScheduleForm()">Crear Horario</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="modal fade" id="EditScheduleModal" tabindex="-1" role="dialog" aria-labelledby="EditScheduleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <!-- El nombre del curso se actualizará dinámicamente aquí -->
+                                <h5 class="modal-title" id="EditScheduleModalLabel">Editar Horario</h5>
+                                <button type="button" class="close" onclick="closeModal('EditScheduleModal')" aria-label="Close">
+                                    <span>&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="createScheduleForm">
+                                    <div class="form-group">
+                                        <label for="HorarioId">Id de curso</label>
+                                        <input type="text" id="HorarioId" class="form-control" readonly />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="professor">Profesor</label>
+                                        <select class="form-control" id="professorEdit" name="professor" required>
+                                            <option value="">Seleccionar Profesor</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="cupoEdit">Cupo</label>
+                                        <input type="number" class="form-control" id="cupoEdit" name="cupoEdit" required>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" onclick="closeModal('EditScheduleModal')">Cerrar</button>
+                                <button type="button" class="btn btn-primary" onclick="submitEditScheduleForm()">Editar Horario</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+
+                <div class="modal fade" id="viewScheduleModal" tabindex="-1" role="dialog" aria-labelledby="viewScheduleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <!-- El nombre del curso se actualizará dinámicamente aquí -->
+                                <h5 class="modal-title" id="viewScheduleModalLabel">Horarios del curso: <span id="ListHorariosCourseName"></span></h5>
+                                <button type="button" class="close" onclick="closeModal('viewScheduleModal')" aria-label="Close">
+                                    <span>&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="viewScheduleForm">
+                                    <div class="form-group">
+                                        <label for="HorarioCursoIdList">Id de curso</label>
+                                        <input type="text" id="HorarioCursoIdList" class="form-control" readonly />
+                                    </div>
+                                    <!-- Aquí se agrega la tabla para mostrar los horarios -->
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-striped" id="scheduleTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>Id Horario</th>
+                                                    <th>Día</th>
+                                                    <th>Hora de Inicio</th>
+                                                    <th>Hora de Fin</th>
+                                                    <th>Profesor</th>
+                                                    <th>Cupo inicial</th>
+                                                    <th>Cupo restante</th>
+                                                    <th>Matricular</th>
+                                                    <th>Editar</th>
+
+                                                </tr>
+                                            </thead>
+                                            <tbody id="scheduleTableBody">
+                                                <!-- Los horarios se agregarán aquí dinámicamente -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" onclick="closeModal('viewScheduleModal')">Cerrar</button>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                
+                <div class="modal fade" id="crearMatriculaModal" tabindex="-1" role="dialog" aria-labelledby="crearMatriculaModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="crearMatriculaModalLabel">Crear Matrícula</h5>
+                                <button type="button" class="close" onclick="CloseModal('crearMatriculaModal')" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="crearMatriculaForm">
+                                    <div class="form-group">
+                                        <label for="idCursoMatricular">ID del Curso</label>
+                                        <input type="text" class="form-control" id="idCursoMatricular" name="idCursoMatricular" required readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="idHorarioMatricular">ID del Horario</label>
+                                        <input type="text" class="form-control" id="idHorarioMatricular" name="idHorarioMatricular" required readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="nombreEstudiante">Nombre del Estudiante</label>
+                                        <input type="text" class="form-control" id="nombreEstudiante" name="nombreEstudiante" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="cedulaEstudiante">Cédula</label>
+                                        <input type="text" class="form-control" id="cedulaEstudiante" name="cedulaEstudiante" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="telefonoEstudiante">Teléfono</label>
+                                        <input type="text" class="form-control" id="telefonoEstudiante" name="telefonoEstudiante" required 
+                                               value="506" 
+                                               oninput="formatPhone(this)" onkeydown="preventPrefixDeletion(event)">
+                                    </div>                                 
+                                    <div class="form-group">
+                                        <label for="correoEstudiante">Correo Electrónico</label>
+                                        <input type="email" class="form-control" id="correoEstudiante" name="correoEstudiante" required>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" onclick="closeModal('crearMatriculaModal')">Cerrar</button>
+                                <button type="button" class="btn btn-primary" onclick="crearMatricula()">Crear Matrícula</button>
+                            </div>
+                        </div>
+                    </div>
+
+                        <script>
+                        function formatPhone(input) {
+                            const prefix = "506";
+                            if (!input.value.startsWith(prefix)) {
+                                input.value = prefix;
+                            }
+                        
+                            // Permitir solo números y limitar a 8 dígitos después del prefijo
+                            input.value = prefix + input.value.slice(prefix.length).replace(/[^0-9]/g, '').slice(0, 8);
+                        
+                            // Mover el cursor al final del campo
+                            setTimeout(() => {
+                                input.selectionStart = input.selectionEnd = input.value.length;
+                            }, 0);
+                        }
+                        
+                        function preventPrefixDeletion(event) {
+                            const input = event.target;
+                            const prefix = "506";
+                        
+                            // Impedir eliminación de cualquier carácter del prefijo
+                            if (input.selectionStart < prefix.length && (event.key === "Backspace" || event.key === "Delete")) {
+                                event.preventDefault();
+                            }
+                        }
+                        </script>
+                </div>
+                
+   
+                                    </div><!--end analytics-dash-activity-->
+                                </div>  <!--end card-body-->                                     
+                            </div><!--end card--> 
+                        </div><!--end col--> 
+                        
+                    </div><!--end row-->
+
+                </div><!-- container -->
+
+                <footer class="footer text-center text-sm-left">
+                    &copy; <span id="currentYear"></span> Agenda de mujeres 
+                    <span class="d-none d-sm-inline-block float-right">
+                        Crafted with <i class="mdi mdi-heart text-danger"></i> by ModulApps
+                    </span>
+                </footer><!--end footer-->
+            </div>
+            <!-- end page content -->
+        </div>
+        <!-- end page-wrapper -->
+
+        
+
+
+        <!-- jQuery  -->
+        <script src="assets/js/jquery.min.js"></script>
+        <script src="assets/js/bootstrap.bundle.min.js"></script>
+        <script src="assets/js/metismenu.min.js"></script>
+        <script src="assets/js/waves.js"></script>
+        <script src="assets/js/feather.min.js"></script>
+        <script src="assets/js/simplebar.min.js"></script>
+        <script src="assets/js/jquery-ui.min.js"></script>
+        <script src="assets/js/moment.js"></script>
+        <script src="../plugins/daterangepicker/daterangepicker.js"></script>
+
+        <script src="../plugins/apex-charts/apexcharts.min.js"></script>
+        <script src="../plugins/jvectormap/jquery-jvectormap-2.0.2.min.js"></script>
+        <script src="../plugins/jvectormap/jquery-jvectormap-us-aea-en.js"></script>
+        <script src="assets/pages/jquery.analytics_dashboard.init.js"></script>
+
+        <!-- App js -->
+        <script src="assets/js/app.js"></script>
+        <script>
+            window.onload = function() {
+                // Obtener el nombre de usuario desde sessionStorage
+                const userName = sessionStorage.getItem('fullName'); // Ajusta el nombre de la variable según lo necesites
+                
+                // Asignar el nombre de usuario al elemento en la página
+                if (userName) {
+                    document.getElementById('userNameSpan').textContent = userName;
+                } else {
+                    document.getElementById('userNameSpan').textContent = 'Invitado';
+                }
+        
+                // Obtener el token de sesión
+                let tokenSesion = sessionStorage.getItem("tokenSesion");
+        
+                if (!tokenSesion) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '¡Sesión vencida!',
+                        text: 'Tu sesión ha expirado, por favor vuelve a iniciar sesión.',
+                    }).then(() => {
+                        window.location.href = "index.html";
+                    });
+                } else {
+                    fetch('http://127.0.0.1/api/validaSesion.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            "tokenSesion": tokenSesion
+                        })
+                    })
+                    .then(response => {
+                        if (response.status !== 200) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: '¡Sesión vencida!',
+                                text: 'Tu sesión ha expirado, por favor vuelve a iniciar sesión.',
+                            }).then(() => {
+                                window.location.href = "index.html";
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: '¡Error de conexión!',
+                            text: 'No se pudo conectar con el servidor. Por favor, intenta más tarde.',
+                        }).then(() => {
+                            window.location.href = "index.html";
+                        });
+                    });
+                }
+            };
+        </script>
+
+        
+        
+        <script src="scripts/listaCursos.js"></script>
+        <script src="scripts/crearCursos.js"></script>
+        <script src="scripts/updateCursos.js"></script>
+        <script src="scripts/deleteCursos.js"></script>
+
+        <script src="scripts/listarProfesores.js"></script>
+        <script src="scripts/crearHorario.js"></script>
+        <script src="scripts/listarHorariosMatricula.js"></script>
+        <script src="scripts/crearMatricula.js"></script>
+        <script src="scripts/EditHorario.js"></script>
+
+        <script src="scripts/validacionRoles.js"></script>
+        <script src="scripts/guardarImagen.js"></script>
+
+        
+
+        <script>
+            // Función para abrir el modal
+            function OpencheduleModal(cursoID,NombreCurso) {
+                const modal = document.getElementById('createScheduleModal');
+                 // Actualizar el nombre del curso en el título del modal
+                const courseNameElement = document.getElementById('courseName');
+                loadHorarioData(cursoID);
+
+                courseNameElement.textContent = NombreCurso;  // Coloca el nombre del curso en el título
+                cargarProfesores('professorCreate');
+
+        $(modal).modal('show'); // Usando jQuery para abrir el modal
+                $(modal).modal('show'); // Usando jQuery para abrir el modal
+            }
+        
+        </script>
+        
+
+
+        <script>
+            // Función para abrir el modal
+            function openModal() {
+                const modal = document.getElementById('createCourseModal');
+                $(modal).modal('show'); // Usando jQuery para abrir el modal
+            }
+        
+            // Función para cerrar el modal
+            function closeModal(modalId) {
+                const modal = document.getElementById(modalId);
+                $(modal).modal('hide'); // Usando jQuery para cerrar el modal
+            }
+        </script>
+
+        <script>
+            // Función para abrir el modal
+                    // Función para abrir el modal y pasarle los datos del curso
+            function openEditCourseModal(ID,NombreCurso,Descripcion,FechaInicio,FechaFin,Precio,PorcentajePagoProfe) {
+                // Llamar a la función para cargar los datos en el formulario
+                loadCourseData(ID,NombreCurso,Descripcion,FechaInicio,FechaFin,Precio,PorcentajePagoProfe);
+
+                // Abrir el modal de edición
+                $('#editCourseModal').modal('show');
+            }
+
+        </script>
+
+        <script>
+            // Función para abrir el modal
+                    // Función para abrir el modal y pasarle los datos del curso
+            function openImageModal(ID,nombreCurso) {
+                // Llamar a la función para cargar los datos en el formulario
+                
+                document.getElementById('idCursoImage').value = ID;
+                document.getElementById('nombreCursoImage').value = nombreCurso;
+                // Abrir el modal de edición
+                $('#uploadImageModal').modal('show');
+            }
+
+        </script>
+
+        <script>
+             function loadCourseData(ID,NombreCurso,Descripcion,FechaInicio,FechaFin,Precio,PorcentajePagoProfe,pagadoProfe) {
+                document.getElementById('editCourseId').value = ID;  // Asigna el ID del curso
+                document.getElementById('editNombreCurso').value = NombreCurso;
+                document.getElementById('editDescripcion').value = Descripcion;
+                document.getElementById('editFechaInicio').value = FechaInicio;
+                document.getElementById('editFechaFin').value = FechaFin;
+                document.getElementById('editprecioModal').value = Precio;
+                document.getElementById('editPorcentajeProfe').value = PorcentajePagoProfe;
+            }
+        </script>
+
+        <script>
+            function loadHorarioData(ID) {
+                document.getElementById('HorarioCursoId').value = ID;  // Asigna el ID de horario
+            }
+        </script>
+        
+        <script>
+            function validarPorcentaje(input) {
+                // Convertir el valor a un número entero
+                const value = parseInt(input.value, 10);
+                
+                // Verificar si el valor está fuera del rango permitido
+                if (value < 1 || value > 100 || isNaN(value)) {
+                    // Mostrar un mensaje de advertencia
+                    input.setCustomValidity('El porcentaje debe estar entre 1 y 100.');
+                    input.value = ''; // Limpiar el campo si no es válido
+                } else {
+                    // Restablecer la validez si el valor es válido
+                    input.setCustomValidity('');
+                }
+            }
+        </script>
+    
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+       
+
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        <script>
+            const firebaseConfig = {
+                apiKey: "AIzaSyAtvlO4mvc0K1KTrIfQiOci2IEPD_ZS-Z8",
+                authDomain: "matriculasmujeres-e2535.firebaseapp.com",
+                projectId: "matriculasmujeres-e2535",
+                storageBucket: "matriculasmujeres-e2535.appspot.com",
+                messagingSenderId: "148484258693",
+                appId: "1:148484258693:web:95398ac8aca4b8aa00a2ec",
+                measurementId: "G-DKT6TQJ5N2"
+            };
+        
+            const app = firebase.initializeApp(firebaseConfig);
+            const storage = firebase.storage();
+        
+            const form = document.getElementById('uploadForm');
+            const fileInput = document.getElementById('fileInput');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');   
+            const progressText = document.getElementById('progressText');   
+            const downloadURLDiv = document.getElementById('downloadURL');
+        
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+        
+                const file = fileInput.files[0];
+                const idCurso = document.getElementById('idCursoImage').value;
+                const storageRef = storage.ref();
+                const folderPath = `imagenesCursos/${idCurso}/`;
+        
+                // 1. Eliminar la carpeta existente
+                const folderRef = storageRef.child(folderPath);
+                
+                folderRef.listAll().then((listResult) => {
+                    // Eliminar todos los archivos dentro de la carpeta
+                    const deletePromises = listResult.items.map((itemRef) => itemRef.delete());
+                    return Promise.all(deletePromises);
+                }).then(() => {
+                    console.log(`Carpeta '${folderPath}' eliminada correctamente.`);
+        
+                    // 2. Subir el nuevo archivo en la carpeta recién creada
+                    const fileRef = storageRef.child(`${folderPath}${file.name}`);
+        
+                    progressContainer.style.display = 'block';
+        
+                    const uploadTask = fileRef.put(file);
+        
+                    uploadTask.on('state_changed',
+                        (snapshot) => {
+                            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                            progressBar.value = progress;
+                            progressText.textContent = `Subida: ${progress.toFixed(2)}%`;
+                        },
+                        (error) => {
+                            console.error('Error al subir el archivo', error);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Error al subir la imagen. Por favor, inténtalo de nuevo.'
+                            });
+                        },
+                        () => {
+                            // 3. Obtener la URL de descarga y consumir la API
+                            uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+                                downloadURLDiv.textContent = `Imagen subida con éxito. URL: ${downloadURL}`;
+                                progressContainer.style.display = 'none';
+        
+                                // 4. Consumir el API enviando la URL de la imagen y el cursoID
+                                fetch('http://127.0.0.1/api/guardarURLImagen.php', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        urlImagen: downloadURL,
+                                        cursoID: idCurso
+                                    })
+                                })
+                                .then(response => {
+                                    if (response.ok) {
+                                        return response.json().then(() => {
+                                            Swal.fire({
+                                                icon: 'success',
+                                                title: '¡Éxito!',
+                                                text: 'Imagen subida y URL guardada correctamente.',
+                                                confirmButtonText: 'OK'
+                                            }).then(() => {
+                                                // Recargar la página después de la alerta de éxito
+                                                location.reload();
+                                            });
+                                        });
+                                    } else {
+                                        // Error basado en el status code del HTTP
+                                        Swal.fire({
+                                            icon: 'error',
+                                            title: 'Error',
+                                            text: `Error en el servidor: ${response.status} ${response.statusText}`
+                                        });
+                                    }
+                                })
+                                .catch((error) => {
+                                    console.error('Error al guardar la URL de la imagen en la base de datos:', error);
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Error',
+                                        text: 'Error al comunicar con el servidor para guardar la URL.'
+                                    });
+                                });
+                            });
+                        }
+                    );
+                }).catch((error) => {
+                    console.error('Error al eliminar la carpeta:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error al eliminar la carpeta existente.'
+                    });
+                });
+            });
+
+            
+        </script>
+        
+       
+
+        
+
+    </body>
+
+</html>

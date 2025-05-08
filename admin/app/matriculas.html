@@ -1,0 +1,530 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8" />
+        <title>Control de matriculas - Administración de usuarios</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta content="Premium Multipurpose Admin & Dashboard Template" name="description" />
+        <meta content="" name="author" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+        <!-- App favicon -->
+        <link rel="shortcut icon" href="assets/images/favicon.ico">
+
+        <!-- jvectormap -->
+        <link href="../plugins/jvectormap/jquery-jvectormap-2.0.2.css" rel="stylesheet">
+
+        <!-- App css -->
+        <link href="assets/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+        <link href="assets/css/jquery-ui.min.css" rel="stylesheet">
+        <link href="assets/css/icons.min.css" rel="stylesheet" type="text/css" />
+        <link href="assets/css/metisMenu.min.css" rel="stylesheet" type="text/css" />
+        <link href="../plugins/daterangepicker/daterangepicker.css" rel="stylesheet" type="text/css" />
+        <link href="assets/css/app.min.css" rel="stylesheet" type="text/css" />
+        
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-storage.js"></script>
+              <script src="scripts/menuLoader.js"></script>        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+
+                      <script src="scripts/descargarMatriculasExcel.js"></script>
+
+
+    </head>
+
+    <body class="dark-sidenav">
+        
+           <!-- Left Sidenav -->
+        <div class="left-sidenav">
+            <!-- LOGO -->
+            <div class="brand">
+                <a href="home.html" class="logo">
+                    <h4 style="color: aliceblue;" alt="logo-small" class="logo-sm">Sistema de matriculas</h4>
+                </a>
+            </div>
+            <!--end logo-->
+            <div id="menuContainer"></div>
+        </div>
+        <!-- end left-sidenav-->
+        
+
+        <div class="page-wrapper">
+            <!-- Top Bar Start -->
+            <div class="topbar">            
+                <!-- Navbar -->
+                <nav class="navbar-custom">    
+                    <ul class="list-unstyled topbar-nav float-right mb-0">  
+
+                        <li class="dropdown">
+                            <a class="nav-link dropdown-toggle waves-effect waves-light nav-user" data-toggle="dropdown" href="#" role="button"
+                                aria-haspopup="false" aria-expanded="false">
+                                <span class="ml-1 nav-user-name hidden-sm" id="userNameSpan"></span>
+                                
+                                
+                                <img src="assets/images/users/user-5.png" alt="profile-user" class="rounded-circle" />                                                               
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right">
+                          
+                                <a class="dropdown-item" href="#" id="logoutButton">
+                                    <i data-feather="power" class="align-self-center icon-xs icon-dual mr-1"></i> Logout
+                                </a>
+
+                                <script>
+                                    document.getElementById('logoutButton').addEventListener('click', function(event) {
+                                        event.preventDefault(); // Evitar que la página se recargue al hacer clic en el enlace
+                                
+                                        // Obtener el idUsuario de la sesión
+                                        let idUsuario = sessionStorage.getItem('id'); // O donde almacenes el idUsuario
+                                
+                                        // Verificar si el idUsuario está presente en la sesión
+                                        if (idUsuario) {
+                                            // Realizar la solicitud API para cerrar sesión
+                                            fetch('http://127.0.0.1/api/logout.php', {
+                                                method: 'POST',
+                                                headers: {
+                                                    'Content-Type': 'application/json'
+                                                },
+                                                body: JSON.stringify({
+                                                    idUsuario: idUsuario
+                                                })
+                                            })
+                                            .then(response => response.json())
+                                            .then(data => {
+                                                // Eliminar siempre las variables de sesión
+                                                sessionStorage.removeItem('tokenSesion'); // Eliminar el idUsuario de la sesión
+                                                sessionStorage.removeItem('id'); // Eliminar otros datos de sesión si es necesario
+                                                sessionStorage.removeItem('email'); // Eliminar otros datos de sesión si es necesario
+                                                sessionStorage.removeItem('fullName'); // Eliminar otros datos de sesión si es necesario
+
+                                                if (data.mensaje === 'Sesión cerrada exitosamente') {
+                                                    // Mostrar SweetAlert de éxito y redirigir
+                                                    Swal.fire({
+                                                        icon: 'success',
+                                                        title: 'Sesión cerrada exitosamente',
+                                                        showConfirmButton: false,
+                                                        timer: 1500
+                                                    }).then(() => {
+                                                        window.location.href = 'index.html'; // Redirigir a la página de inicio
+                                                    });
+                                                } else {
+                                                    // Si la respuesta no es exitosa, mostrar mensaje de error con SweetAlert
+                                                    Swal.fire({
+                                                        icon: 'error',
+                                                        title: 'Error',
+                                                        text: 'Hubo un error al cerrar la sesión.',
+                                                    }).then(() => {
+                                                        window.location.href = 'index.html'; // Redirigir a la página de inicio
+                                                    });
+                                                }
+                                            })
+                                            .catch(error => {
+                                                console.error('Error al cerrar sesión:', error);
+                                
+                                                // Mostrar SweetAlert en caso de error en la solicitud
+                                                Swal.fire({
+                                                    icon: 'error',
+                                                    title: 'Error',
+                                                    text: 'Ocurrió un error al intentar cerrar sesión.',
+                                                }).then(() => {
+                                                    window.location.href = 'index.html'; // Redirigir a la página de inicio
+                                                });
+                                            });
+                                        } else {
+                                            // Si no hay idUsuario en la sesión, eliminar las variables de sesión y redirigir
+                                            sessionStorage.removeItem('id');
+                                            sessionStorage.removeItem('otroDato');
+                                
+                                            Swal.fire({
+                                                icon: 'warning',
+                                                title: 'No hay sesión activa',
+                                                text: 'Por favor inicie sesión primero.',
+                                            }).then(() => {
+                                                window.location.href = 'index.html'; // Redirigir a la página de inicio
+                                            });
+                                        }
+                                    });
+                                </script>
+                                
+
+                            </div>
+                        </li>
+                    </ul><!--end topbar-nav-->
+        
+                    <ul class="list-unstyled topbar-nav mb-0">                        
+                        <li>
+                            <button class="nav-link button-menu-mobile">
+                                <i data-feather="menu" class="align-self-center topbar-icon"></i>
+                            </button>
+                        </li> 
+                                                  
+                    </ul>
+                </nav>
+                <!-- end navbar-->
+            </div>
+            <!-- Top Bar End -->
+
+            <!-- Page Content-->
+<div class="container-fluid mt-4">
+    <!-- Fila de contenido -->
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <!-- Tarjeta de contenido -->
+            <div class="card">
+                <div class="card-body">
+                    <!-- Título -->
+                    <h4 class="text-dark mb-1 font-weight-semibold">Lista de Matrículas</h4>
+                    <div class="col">
+                    <button id="descargarExcelMatriculasBtn" type="button" class="btn btn-success" onclick="descargarMatriculasExcel()">Descargar Matriculas en excel</button>
+                                       </div><!--end col--> 
+                    <br />
+                    <!-- Tabla de matrículas -->
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th class="text-center">Id de Matrícula
+                                        <input type="text" class="form-control" placeholder="Filtrar Id" onkeyup="filtrarColumna(0, this.value)">
+                                    </th>
+                                    <th class="text-center">Nombre del Curso
+                                        <input type="text" class="form-control" placeholder="Filtrar Curso" onkeyup="filtrarColumna(1, this.value)">
+                                    </th>
+                                    <th class="text-center">Horario
+                                        <input type="text" class="form-control" placeholder="Filtrar Curso" onkeyup="filtrarColumna(2, this.value)">
+                                    </th>
+                                    <th class="text-center">Nombre Completo
+                                        <input type="text" class="form-control" placeholder="Filtrar Nombre" onkeyup="filtrarColumna(3, this.value)">
+                                    </th>
+                                    <th class="text-center">Cédula
+                                        <input type="text" class="form-control" placeholder="Filtrar Cédula" onkeyup="filtrarColumna(4, this.value)">
+                                    </th>
+                                    <th class="text-center">Teléfono
+                                        <input type="text" class="form-control" placeholder="Filtrar Teléfono" onkeyup="filtrarColumna(5, this.value)">
+                                    </th>
+                                    <th class="text-center">Correo
+                                        <input type="text" class="form-control" placeholder="Filtrar Correo" onkeyup="filtrarColumna(6, this.value)">
+                                    </th>
+                                    <th class="text-center">Estado pago de Matrícula
+                                        <input type="text" class="form-control" placeholder="Filtrar Estado" onkeyup="filtrarColumna(7, this.value)">
+                                    </th>
+                                    <th class="text-center">Cuotas pendientes
+                                        <input type="text" class="form-control" placeholder="Filtrar Cuotas" onkeyup="filtrarColumna(8, this.value)">
+                                    </th>
+                                    <th class="text-center">Meses pendientes cobro
+                                        <input type="text" class="form-control" placeholder="Filtrar Cuotas" onkeyup="filtrarColumna(9, this.value)">
+                                    </th>
+                                    <th class="text-center">Monto de Cuota
+                                        <input type="text" class="form-control" placeholder="Filtrar Monto" onkeyup="filtrarColumna(10, this.value)">
+                                    </th>
+                                    <th class="text-center">Monto adeudado
+                                        <input type="text" class="form-control" placeholder="Filtrar Adeudado" onkeyup="filtrarColumna(11, this.value)">
+                                    </th>
+                                    <th class="text-center">Comprobante
+                                        <input type="text" class="form-control" placeholder="Filtrar Adeudado" onkeyup="filtrarColumna(12, this.value)">
+                                    </th>
+                                    <th class="text-center">Método de pago
+                                        <input type="text" class="form-control" placeholder="Filtrar Método" onkeyup="filtrarColumna(13, this.value)">
+                                    </th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="matriculaTableBody">
+                                <!-- Las filas de la tabla se llenarán dinámicamente aquí -->
+                            </tbody>
+                        </table>
+                    </div> <!-- end .table-responsive -->
+                    
+                    <!-- Paginación -->
+                    <div class="row">
+                        <div class="col">
+                            <ul class="pagination justify-content-center mt-3" id="pagination">
+                                <!-- Paginación dinámica -->
+                            </ul>
+                        </div>
+</div>
+                </div><!-- end card-body -->
+            </div><!-- end card -->
+        </div><!-- end col -->
+    </div><!-- end row -->
+</div><!-- end container-fluid -->
+            
+            
+            
+            
+                    
+                <!-- Modal de creación () -->
+                    <!-- Modal -->
+                 
+                    <div class="modal fade" id="cambiarEstadoMatriculaModal" tabindex="-1" role="dialog" aria-labelledby="cambiarEstadoMatriculaModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="cambiarEstadoMatriculaModalLabel">Confirmar registro de pago</h5>
+                                    <button type="button" class="close" onclick="CloseModal('cambiarEstadoMatriculaModal')" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="cambiarEstadoMatriculaForm">
+                                        <div class="form-group">
+                                            <label for="idMatricula">ID de Matrícula</label>
+                                            <input type="text" class="form-control" id="idMatricula" name="idMatricula" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="CuotaPagar">Monto de cuota</label>
+                                            <input type="text" class="form-control" id="CuotaPagar" name="CuotaPagar" required readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="notas">Notas</label>
+                                            <textarea class="form-control" id="notas" name="notas" rows="3" required></textarea>
+                                        </div>
+                                       
+                                        <div class="form-group">
+                                            <label for="comprobanteEstado">Comprobante</label>
+                                            <input type="text" class="form-control" id="comprobanteEstado" name="comprobanteEstado" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="comprobanteEstado">Cuotas Pendientes</label>
+                                            <input type="text" class="form-control" id="cuotasPendientes" name="cuotasPendientes" readonly>
+                                        </div>
+                                         <div class="form-group">
+                                            <label for="comprobanteEstado"></label>
+                                            <input type="text" class="form-control" id="telefono" name="telefono" readonly>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" onclick="CloseModal('cambiarEstadoMatriculaModal')">Cerrar</button>
+                                    <button type="button" class="btn btn-primary" onclick="actualizarEstadoMatricula()">Incluir pago</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal fade" id="cambiarMetodoPagoModal" tabindex="-1" role="dialog" aria-labelledby="cambiarMetodoPagoModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="cambiarMetodoPagoModalLabel">Cambiar Método de Pago</h5>
+                                    <button type="button" class="close" onclick="CloseModalUdpateMetodoPago('cambiarMetodoPagoModal')" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="cambiarMetodoPagoForm">
+                                        <div class="form-group">
+                                            <label for="idMatriculaUpdateMetodoPago">ID de Matrícula</label>
+                                            <input type="text" class="form-control" id="idMatriculaUpdateMetodoPago" name="idMatriculaUpdateMetodoPago" readonly>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="metodoPagoUpdate">Método de Pago</label>
+                                            <select class="form-control" id="metodoPagoUpdate" name="metodoPagoUpdate" required>
+                                                <option value="Transferencia Bancaria">Transferencia Bancaria</option>
+                                                <option value="SINPE Móvil">SINPE Móvil</option>
+                                            </select>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" onclick="CloseModalUdpateMetodoPago('cambiarMetodoPagoModal')">Cerrar</button>
+                                    <button type="button" class="btn btn-primary" onclick="actualizarMetodoPago()">Cambiar Método de Pago</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+
+                    
+                    
+
+                                    </div><!--end analytics-dash-activity-->
+                                </div>  <!--end card-body-->                                     
+                            </div><!--end card--> 
+                        </div><!--end col--> 
+                        
+                    </div><!--end row-->
+
+                </div><!-- container -->
+
+                 <footer class="footer text-center text-sm-left">
+                    &copy; <span id="currentYear"></span> Agenda de mujeres 
+                    <span class="d-none d-sm-inline-block float-right">
+                        Crafted with <i class="mdi mdi-heart text-danger"></i> by ModulApps
+                    </span>
+                </footer><!--end footer-->
+            </div>
+            <!-- end page content -->
+        </div>
+        <!-- end page-wrapper -->
+
+        
+
+
+        <!-- jQuery  -->
+        <script src="assets/js/jquery.min.js"></script>
+        <script src="assets/js/bootstrap.bundle.min.js"></script>
+        <script src="assets/js/metismenu.min.js"></script>
+        <script src="assets/js/waves.js"></script>
+        <script src="assets/js/feather.min.js"></script>
+        <script src="assets/js/simplebar.min.js"></script>
+        <script src="assets/js/jquery-ui.min.js"></script>
+        <script src="assets/js/moment.js"></script>
+        <script src="../plugins/daterangepicker/daterangepicker.js"></script>
+
+        <script src="../plugins/apex-charts/apexcharts.min.js"></script>
+        <script src="../plugins/jvectormap/jquery-jvectormap-2.0.2.min.js"></script>
+        <script src="../plugins/jvectormap/jquery-jvectormap-us-aea-en.js"></script>
+        <script src="assets/pages/jquery.analytics_dashboard.init.js"></script>
+
+        <!-- App js -->
+        <script src="assets/js/app.js"></script>
+        <script src="scripts/listarMatriculas.js"></script>
+        <script src="scripts/actualizarEstadoMatriculas.js"></script>
+        <script src="scripts/eliminarMatricula.js"></script>
+        <script src="scripts/validacionRoles.js"></script>
+        <script src="scripts/actualizarMetodoPago.js"></script>
+
+        <script>
+            window.onload = function() {
+                // Obtener el nombre de usuario desde sessionStorage
+                const userName = sessionStorage.getItem('fullName'); // Ajusta el nombre de la variable según lo necesites
+                
+               
+
+                // Asignar el nombre de usuario al elemento en la página
+                if (userName) {
+                    document.getElementById('userNameSpan').textContent = userName;
+                } else {
+                    document.getElementById('userNameSpan').textContent = 'Invitado';
+                }
+        
+                // Obtener el token de sesión
+                let tokenSesion = sessionStorage.getItem("tokenSesion");
+        
+                if (!tokenSesion) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: '¡Sesión vencida!',
+                        text: 'Tu sesión ha expirado, por favor vuelve a iniciar sesión.',
+                    }).then(() => {
+                        window.location.href = "index.html";
+                    });
+                } else {
+                    fetch('http://127.0.0.1/api/validaSesion.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            "tokenSesion": tokenSesion
+                        })
+                    })
+                    .then(response => {
+                        if (response.status !== 200) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: '¡Sesión vencida!',
+                                text: 'Tu sesión ha expirado, por favor vuelve a iniciar sesión.',
+                            }).then(() => {
+                                window.location.href = "index.html";
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: '¡Error de conexión!',
+                            text: 'No se pudo conectar con el servidor. Por favor, intenta más tarde.',
+                        }).then(() => {
+                            window.location.href = "index.html";
+                        });
+                    });
+                }
+            };
+        </script>
+
+        <script>
+            // Función para abrir el modal
+            function opencambiarEstadoMatriculaModal(IdMatricula,Comprobante,MontoPago,cuotas,telefono) {
+                const modal = document.getElementById('cambiarEstadoMatriculaModal');
+                document.getElementById('idMatricula').value = IdMatricula;
+                document.getElementById('CuotaPagar').value = MontoPago;
+                document.getElementById('comprobanteEstado').value = Comprobante;
+                document.getElementById('cuotasPendientes').value = cuotas;
+                document.getElementById('telefono').value = telefono;
+
+
+            $(modal).modal('show'); // Usando jQuery para abrir el modal
+            }
+
+        </script>
+        <script>
+            
+            function CloseModal(modalName) {
+                const modal = document.getElementById('cambiarEstadoMatriculaModal');
+            $(modal).modal('hide'); // Usando jQuery para abrir el modal
+            }
+
+        </script>
+        <script>
+            function filterTable() {
+                const input = document.getElementById('searchInput');
+                const filter = input.value.toLowerCase();
+                const tableBody = document.getElementById('ProfesorTableBody');
+                const rows = tableBody.getElementsByTagName('tr');
+        
+                // Iterar sobre las filas y ocultar las que no coincidan con la búsqueda
+                for (let i = 0; i < rows.length; i++) {
+                    const nameCell = rows[i].getElementsByTagName('td')[1]; // Nombre del profesor es la segunda columna
+                    if (nameCell) {
+                        const nameValue = nameCell.textContent || nameCell.innerText;
+                        if (nameValue.toLowerCase().indexOf(filter) > -1) {
+                            rows[i].style.display = ''; // Mostrar la fila
+                        } else {
+                            rows[i].style.display = 'none'; // Ocultar la fila
+                        }
+                    }
+                }
+            }
+        </script>
+        
+        <script>
+            // Función para enviar notificación de creación de matrícula
+            async function notificarCreacionMatricula(phone, studentName) {
+                const whatsappRequestBody = {
+                    chatId: `${phone}@c.us`,
+                    message: `Su matricula fue exitosa ¡Bienvenido!.😄`
+                };
+            
+                try {
+                    const whatsappResponse = await fetch('https://waapi.app/api/v1/instances/48511/client/action/send-message', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'Authorization': `Bearer VqYXAVDiAFKAP1kRZmhonMLo3zdxmWObSS2upAm27fef1168`
+                        },
+                        body: JSON.stringify(whatsappRequestBody)
+                    });
+            
+                    // Verificar si el mensaje fue enviado correctamente
+                    if (whatsappResponse.ok) {
+                        console.log("Mensaje de WhatsApp enviado exitosamente.");
+                    } else {
+                        console.error("Error al enviar el mensaje de WhatsApp.");
+                    }
+                } catch (error) {
+                    console.error('Error al enviar el mensaje de WhatsApp:', error);
+                }
+            }
+            
+        </script>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+        
+    </body>
+
+</html>
