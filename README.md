@@ -41,5 +41,4 @@ Este sistema permite a una **asociación de mujeres** gestionar eficientemente l
 
 ---
 
-## 📁 Estructura del Backend (PHP)
 
