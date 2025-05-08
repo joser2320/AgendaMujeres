@@ -4,13 +4,7 @@ import { getAnalytics } from "firebase/analytics";
 
 // Configuración de Firebase
 const firebaseConfig = {
-    apiKey: "AIzaSyAtvlO4mvc0K1KTrIfQiOci2IEPD_ZS-Z8",
-    authDomain: "matriculasmujeres-e2535.firebaseapp.com",
-    projectId: "matriculasmujeres-e2535",
-    storageBucket: "matriculasmujeres-e2535.appspot.com",
-    messagingSenderId: "148484258693",
-    appId: "1:148484258693:web:95398ac8aca4b8aa00a2ec",
-    measurementId: "G-DKT6TQJ5N2"
+
   };
 
 // Inicializar Firebase
