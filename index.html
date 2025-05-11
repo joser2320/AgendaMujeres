@@ -119,105 +119,138 @@
 </section>
 
 <div class="modal fade" id="crearMatriculaModal" tabindex="-1" role="dialog" aria-labelledby="crearMatriculaModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered" role="document"> <!-- Modal más ancho y centrado -->
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="crearMatriculaModalLabel">Crear Matrícula</h5>
-                <button type="button" class="close" onclick="closeModal('crearMatriculaModal')" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="crearMatriculaForm">
-                    <div class="form-group">
-                        <label for="idCursoMatricular">ID del Curso</label>
-                        <input type="text" class="form-control" id="idCursoMatricular" name="idCursoMatricular" required readonly>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="horarioSelect">Selecciona el Horario</label>
-                        <select id="horarioSelect" name="horario" class="form-control" required>
-                            <option value="" disabled selected>Selecciona un horario...</option> <!-- Opción por defecto -->
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="nombreEstudiante">Nombre del Estudiante</label>
-                        <input type="text" class="form-control" id="nombreEstudiante" name="nombreEstudiante" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="cedulaEstudiante">Cédula</label>
-                        <input type="text" class="form-control" id="cedulaEstudiante" name="cedulaEstudiante" required>
-                    </div>
-                   <div class="form-group">
-                        <label for="telefonoEstudiante">Teléfono</label>
-                        <input type="text" class="form-control" id="telefonoEstudiante" name="telefonoEstudiante" required 
-                               value="506" 
-                               oninput="formatPhone(this)" onkeydown="preventPrefixDeletion(event)">
-                    </div>
-                    <div class="form-group">
-                        <label for="correoEstudiante">Correo Electrónico</label>
-                        <input type="email" class="form-control" id="correoEstudiante" name="correoEstudiante" required>
-                    </div>
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document"> <!-- Modal más ancho y centrado -->
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="crearMatriculaModalLabel">Crear Matrícula</h5>
+              <button type="button" class="close" onclick="closeModal('crearMatriculaModal')" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+              </button>
+          </div>
+          <div class="modal-body">
+              <form id="crearMatriculaForm">
+                  <div class="form-group">
+                      <label for="idCursoMatricular">ID del Curso</label>
+                      <input type="text" class="form-control" id="idCursoMatricular" name="idCursoMatricular" required readonly>
+                  </div>
+                  
+                  <div class="form-group">
+                      <label for="horarioSelect">Selecciona el Horario</label>
+                      <select id="horarioSelect" name="horario" class="form-control" required>
+                          <option value="" disabled selected>Selecciona un horario...</option> <!-- Opción por defecto -->
+                      </select>
+                  </div>
+                  
+                  <div class="form-group">
+                      <label for="nombreEstudiante">Nombre del Estudiante</label>
+                      <input type="text" class="form-control" id="nombreEstudiante" name="nombreEstudiante" required>
+                  </div>
+                  <div class="form-group">
+                      <label for="cedulaEstudiante">Cédula</label>
+                      <input type="text" class="form-control" id="cedulaEstudiante" name="cedulaEstudiante" required>
+                  </div>
+                 <div class="form-group">
+                      <label for="telefonoEstudiante">Teléfono</label>
+                      <input type="text" class="form-control" id="telefonoEstudiante" name="telefonoEstudiante" required 
+                             value="506" 
+                             oninput="formatPhone(this)" onkeydown="preventPrefixDeletion(event)">
+                  </div>
+                  <div class="form-group">
+                      <label for="correoEstudiante">Correo Electrónico</label>
+                      <input type="email" class="form-control" id="correoEstudiante" name="correoEstudiante" required>
+                  </div>
 
-                    <!-- Método de Pago -->
-                    <div class="form-group">
-                        <label for="metodoPago">Método de Pago (Pago en tractos)</label><br>
-                        
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="metodoPago" id="transferencia" value="Transferencia Bancaria" onclick="toggleComprobante()">
-                            <label class="form-check-label" for="transferencia">
-                                Transferencia Bancaria
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="metodoPago" id="sinpe" value="SINPE Móvil" onclick="toggleComprobante()">
-                            <label class="form-check-label" for="sinpe">
-                                SINPE Móvil
-                            </label>
-                        </div>
-                    </div>
-                    <script>
-                        function formatPhone(input) {
-                            const prefix = "506";
-                            if (!input.value.startsWith(prefix)) {
-                                input.value = prefix;
-                            }
-                        
-                            // Permitir solo números y limitar a 8 dígitos después del prefijo
-                            input.value = prefix + input.value.slice(prefix.length).replace(/[^0-9]/g, '').slice(0, 8);
-                        
-                            // Mover el cursor al final del campo
-                            setTimeout(() => {
-                                input.selectionStart = input.selectionEnd = input.value.length;
-                            }, 0);
-                        }
-                        
-                        function preventPrefixDeletion(event) {
-                            const input = event.target;
-                            const prefix = "506";
-                        
-                            // Impedir eliminación de cualquier carácter del prefijo
-                            if (input.selectionStart < prefix.length && (event.key === "Backspace" || event.key === "Delete")) {
-                                event.preventDefault();
-                            }
-                        }
-                    </script>
+                  <!-- Método de Pago -->
+                  <div class="form-group">
+                      <label for="metodoPago">Método de Pago (Pago en tractos)</label><br>
+                      
+                      <div class="form-check">
+                          <input class="form-check-input" type="radio" name="metodoPago" id="transferencia" value="Transferencia Bancaria" onclick="toggleComprobante()">
+                          <label class="form-check-label" for="transferencia">
+                              Transferencia Bancaria
+                          </label>
+                      </div>
+                      <div class="form-check">
+                          <input class="form-check-input" type="radio" name="metodoPago" id="sinpe" value="SINPE Móvil" onclick="toggleComprobante()">
+                          <label class="form-check-label" for="sinpe">
+                              SINPE Móvil
+                          </label>
+                      </div>
+                  </div>
 
-                    <!-- Campo para el número de comprobante o transacción (oculto inicialmente) -->
-                    <div class="form-group" id="comprobanteContainer" style="display: none;">
-                        <label for="numeroComprobante">Número de Comprobante/Transacción</label>
-                        <input type="text" class="form-control" id="numeroComprobante" name="numeroComprobante" required>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('crearMatriculaModal')">Cerrar</button>
-                <button type="button" class="btn btn-primary" onclick="crearMatricula()">Crear Matrícula</button>
-            </div>
-        </div>
-    </div>
+                  <!-- Campo para el número de comprobante o transacción (oculto inicialmente) -->
+                  <div class="form-group" id="comprobanteContainer" style="display: none;">
+                      <label for="numeroComprobante">Número de Comprobante/Transacción</label>
+                      <input type="text" class="form-control" id="numeroComprobante" name="numeroComprobante" required>
+                  </div>
+
+                  <!-- Campo para subir archivo (obligatorio) -->
+                  <div class="form-group">
+                      <label for="comprobanteArchivo">Subir Comprobante (archivo obligatorio)</label>
+                      <input type="file" class="form-control-file" id="comprobanteArchivo" name="comprobanteArchivo" required>
+                  </div>
+
+              </form>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" onclick="closeModal('crearMatriculaModal')">Cerrar</button>
+              <button type="button" class="btn btn-primary" onclick="validarFormulario()">Crear Matrícula</button>
+          </div>
+      </div>
+  </div>
 </div>
+
+<script>
+  function formatPhone(input) {
+      const prefix = "506";
+      if (!input.value.startsWith(prefix)) {
+          input.value = prefix;
+      }
+
+      // Permitir solo números y limitar a 8 dígitos después del prefijo
+      input.value = prefix + input.value.slice(prefix.length).replace(/[^0-9]/g, '').slice(0, 8);
+
+      // Mover el cursor al final del campo
+      setTimeout(() => {
+          input.selectionStart = input.selectionEnd = input.value.length;
+      }, 0);
+  }
+
+  function preventPrefixDeletion(event) {
+      const input = event.target;
+      const prefix = "506";
+
+      // Impedir eliminación de cualquier carácter del prefijo
+      if (input.selectionStart < prefix.length && (event.key === "Backspace" || event.key === "Delete")) {
+          event.preventDefault();
+      }
+  }
+
+  function toggleComprobante() {
+      var metodoPago = document.querySelector('input[name="metodoPago"]:checked');
+      if (metodoPago && (metodoPago.value === "Transferencia Bancaria" || metodoPago.value === "SINPE Móvil")) {
+          document.getElementById('comprobanteContainer').style.display = 'block';
+      } else {
+          document.getElementById('comprobanteContainer').style.display = 'none';
+      }
+  }
+
+  function validarFormulario() {
+        const archivo = document.getElementById('comprobanteArchivo').files.length;
+        if (archivo === 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Debe seleccionar un archivo para completar la matrícula.',
+                confirmButtonText: 'Aceptar'
+            });
+            return; // No hacer nada, el formulario no se enviará
+        }
+        // Si todo está bien, llamar a la función de creación de matrícula
+        crearMatricula();
+    }
+</script>
+
 
 
 

@@ -97,6 +97,10 @@ async function crearMatricula() {
 
     const form = document.getElementById('crearMatriculaForm');
     const formData = new FormData(form);
+    const fileInput = document.getElementById('comprobanteArchivo'); // ID del input de archivo
+
+
+
     const data = {
         idCurso: formData.get('idCursoMatricular'),
         idHorario: formData.get('horario'), // Se obtiene el horario seleccionado

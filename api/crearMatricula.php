@@ -15,7 +15,7 @@ $data = json_decode(file_get_contents("php://input"));
 if (!isset($data->nombreEstudiante) || !isset($data->cedula) || !isset($data->telefono) || 
     !isset($data->correo) || !isset($data->estadoPago) || 
     !isset($data->idCurso) || !isset($data->idHorario) || !isset($data->tokenSesion)) {
-    http_response_code(400); // Bad Request
+    http_response_code(400);
     echo json_encode(["mensaje" => "Faltan campos obligatorios"]);
     exit;
 }
@@ -30,7 +30,7 @@ $idCurso = (int)$data->idCurso;
 $idHorario = (int)$data->idHorario;
 $tokenSesion = $data->tokenSesion;
 
-// Validar que no estén vacíos
+// Validar campos obligatorios
 if (empty($nombreEstudiante) || empty($cedula) || empty($telefono) || 
     empty($correo) || empty($estadoPago) || empty($tokenSesion)) {
     http_response_code(400);
@@ -38,16 +38,9 @@ if (empty($nombreEstudiante) || empty($cedula) || empty($telefono) ||
     exit;
 }
 
-// Validar que idCurso y idHorario sean enteros válidos
-if ($idCurso <= 0) {
+if ($idCurso <= 0 || $idHorario <= 0) {
     http_response_code(400);
-    echo json_encode(["mensaje" => "El ID del curso debe ser un entero positivo"]);
-    exit;
-}
-
-if ($idHorario <= 0) {
-    http_response_code(400);
-    echo json_encode(["mensaje" => "El ID del horario debe ser un entero positivo"]);
+    echo json_encode(["mensaje" => "ID de curso y horario deben ser positivos"]);
     exit;
 }
 
@@ -68,13 +61,14 @@ if ($sessionResult->num_rows == 0) {
     echo json_encode(["mensaje" => "Sesión no válida o expirada", "codigo"  => -1]);
     exit;
 }
+$stmt->close();
 
 // Verificar si ya existe una matrícula con la misma cédula y curso
 $checkSql = "SELECT * FROM matriculas WHERE Cedula = ? AND IdCurso = ?";
 $stmt = $conn->prepare($checkSql);
 if (!$stmt) {
     http_response_code(500);
-    echo json_encode(["mensaje" => "Error al preparar la consulta de verificación de matrícula: " . $conn->error]);
+    echo json_encode(["mensaje" => "Error al preparar la verificación de matrícula: " . $conn->error]);
     exit;
 }
 $stmt->bind_param("si", $cedula, $idCurso);
@@ -84,49 +78,29 @@ $checkResult = $stmt->get_result();
 if ($checkResult->num_rows > 0) {
     http_response_code(409);
     echo json_encode(["mensaje" => "Ya existe una matrícula con la misma cédula en este curso"]);
+    $stmt->close();
+    $conn->close();
     exit;
 }
-
-// Obtener 'cantidadCuotas' del curso y asignarlo a 'pendites'
-$selectSql = "SELECT cantidadCuotas FROM cursos WHERE ID = ?";
-$stmt = $conn->prepare($selectSql);
-if (!$stmt) {
-    http_response_code(500);
-    echo json_encode(["mensaje" => "Error al preparar la consulta de selección de curso: " . $conn->error]);
-    exit;
-}
-$stmt->bind_param("i", $idCurso);
-$stmt->execute();
-$stmt->bind_result($pendites);
-$stmt->fetch();
 $stmt->close();
 
-if ($pendites === null) {
-    http_response_code(404);
-    echo json_encode(["mensaje" => "Curso no encontrado"]);
-    exit;
-}
-
-// Insertar datos en la tabla 'matriculas' con la fecha y hora de Costa Rica
-$insertSql = "INSERT INTO matriculas (Nombre, Cedula, Telefono, Correo, estadoPago, IdCurso, IdHorario, cuotasPendientes, fechaCreacion) 
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())";
-$stmt = $conn->prepare($insertSql);
+// Ejecutar el procedimiento almacenado
+$stmt = $conn->prepare("CALL SP_INSERTAR_MATRICULAS_ADMIN(?, ?, ?, ?, ?, ?, ?)");
 if (!$stmt) {
     http_response_code(500);
-    echo json_encode(["mensaje" => "Error al preparar la consulta de inserción de matrícula: " . $conn->error]);
+    echo json_encode(["mensaje" => "Error al preparar el procedimiento: " . $conn->error]);
     exit;
 }
-$stmt->bind_param("sssssiii", $nombreEstudiante, $cedula, $telefono, $correo, $estadoPago, $idCurso, $idHorario, $pendites);
+$stmt->bind_param("ssssssi", $nombreEstudiante, $cedula, $telefono, $correo, $estadoPago, $idCurso, $idHorario);
 
 if ($stmt->execute()) {
     http_response_code(201);
     echo json_encode(["mensaje" => "Matrícula creada exitosamente"]);
 } else {
     http_response_code(500);
-    echo json_encode(["mensaje" => "Error al crear la matrícula"]);
+    echo json_encode(["mensaje" => "Error al ejecutar el procedimiento"]);
 }
 
-// Cerrar la conexión
 $stmt->close();
 $conn->close();
 ?>

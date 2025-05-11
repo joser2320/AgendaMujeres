@@ -52,7 +52,7 @@ $conn->begin_transaction();
 
 try {
     // Eliminar la matrícula de la tabla matriculas
-    $deleteMatriculaSql = "CALL SP_ELIMINAR_MATRICULA(?)";
+    $deleteMatriculaSql = "CALL SP_BORRAR_REGISTROS_MATRICULA(?)";
     $stmt = $conn->prepare($deleteMatriculaSql);
     
     // Verificar si la preparación fue exitosa

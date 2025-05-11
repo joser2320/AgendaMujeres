@@ -10,6 +10,7 @@ async function submitForm() {
     const CantidadCuotasCurso = document.getElementById('CantidadCuotasCurso').value;
     const precio = document.getElementById('precio').value.replace(/[^0-9.-]+/g,""); // Limpiar formato del precio
     const PorcentajePagoProfe = parseInt(document.getElementById('createPorcentajeProfe').value.replace(/[^0-9.-]+/g,"")); 
+    const FueraTiempo = document.getElementById('fueraTiempo').checked; 
 
     // Obtener el token de sesión de sessionStorage
     const tokenSesion = sessionStorage.getItem('tokenSesion');
@@ -65,7 +66,8 @@ async function submitForm() {
         fechaFin: fechaFin,
         precio: precioNum,
         PorcentajePagoProfe: PorcentajePagoProfe,
-        cantidadCuotasCurso:CantidadCuotasCurso
+        cantidadCuotasCurso:CantidadCuotasCurso,
+        FueraTiempo: FueraTiempo,
          // Asegúrate de enviar el precio como número
     };
     

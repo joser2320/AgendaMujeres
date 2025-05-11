@@ -113,11 +113,27 @@ function renderTabla(datosPagina) {
 <td class="text-center">${matricula.comprobante}</td>
 <td class="text-center">${matricula.formaPago}</td>
 <td class="text-center">
-    ${matricula.estadoPago === 'Pendiente' ? 
-        `<button class="btn btn-success btn-sm mr-1" onclick="opencambiarEstadoMatriculaModal(${matricula.Id}, '${matricula.comprobante}', ${matricula.MontoCuota},${matricula.CuotasPendientes},'${matricula.Telefono}')">Incluir Pago</button>` 
-        : ''}
-    <button class="btn btn-danger btn-sm mr-1" onclick="deleteMatricula(${matricula.Id})">Cancelar</button>
-    <button class="btn btn-info btn-sm" onclick="abrirModalUpdateMetodoPago(${matricula.Id})">Método de pago</button>
+        ${matricula.estadoPago === 'Pendiente' ? 
+            `<button class="btn btn-success btn-sm mr-1" title="Incluir Pago"
+                onclick="opencambiarEstadoMatriculaModal(${matricula.Id}, '${matricula.comprobante}', ${matricula.MontoCuota}, ${matricula.CuotasPendientes}, '${matricula.Telefono}')">
+                <i class="fas fa-dollar-sign"></i>
+            </button>` 
+            : ''
+        }
+        <button class="btn btn-danger btn-sm mr-1" title="Cancelar Matrícula"
+            onclick="deleteMatricula(${matricula.Id})">
+            <i class="fas fa-times"></i>
+        </button>
+        <button class="btn btn-info btn-sm mr-1" title="Actualizar Método de Pago"
+            onclick="abrirModalUpdateMetodoPago(${matricula.Id})">
+            <i class="fas fa-credit-card"></i>
+        </button>
+      
+        <button class="btn btn-secondary btn-sm" title="Eliminar Registros de Matrícula"
+            onclick="BorrarRegistrosMatricula(${matricula.Id})">
+            <i class="fas fa-trash-alt"></i>
+        </button>
+
 </td>
 
         `;

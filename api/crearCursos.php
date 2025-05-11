@@ -24,6 +24,7 @@ $fechaFin = $data->fechaFin;
 $precio = $data->precio;
 $porcentajeProfe = $data->PorcentajePagoProfe;
 $cantidadCuotasCurso = $data->cantidadCuotasCurso;
+$FueraTiempo = (int)$data->FueraTiempo; // Convertir a 0 o 1
 
 
 // Validar que los campos no estén vacíos
@@ -48,9 +49,9 @@ if ($sessionResult->num_rows == 0) {
 }
 
 // Insertar el curso en la base de datos
-$insertCursoSql = "INSERT INTO cursos (NombreCurso, Descripcion, FechaInicio, FechaFin, Precio,PorcentajePagoProfe,cantidadCuotas) VALUES (?, ?, ?, ?,?, ?,?)";
+$insertCursoSql = "INSERT INTO cursos (NombreCurso, Descripcion, FechaInicio, FechaFin, Precio,PorcentajePagoProfe,cantidadCuotas,MatriculasFueraTiempo	) VALUES (?, ?, ?, ?,?, ?,?,?)";
 $stmt = $conn->prepare($insertCursoSql);
-$stmt->bind_param("ssssdii", $nombreCurso, $descripcion, $fechaInicio, $fechaFin,$precio, $porcentajeProfe,$cantidadCuotasCurso);
+$stmt->bind_param("ssssdiii", $nombreCurso, $descripcion, $fechaInicio, $fechaFin, $precio, $porcentajeProfe, $cantidadCuotasCurso, $FueraTiempo);
 
 if ($stmt->execute()) {
     // Respuesta exitosa

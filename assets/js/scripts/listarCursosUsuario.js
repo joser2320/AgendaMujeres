@@ -36,6 +36,7 @@ async function loadCourses() {
             endDate: formatDate(course.FechaFin), // Formateamos la fecha de fin
             students: parseInt(course.cupo_total - course.cantidad_matriculas),
             cuotas: parseInt(course.cantidadCuotas),
+            FueraTiempo: course.MatriculasFueraTiempo,
 
         }));
 
@@ -83,13 +84,15 @@ function displayCourses() {
                                 <span class="course-student"><a>Quedan: </a>${course.students} espacios</span>
                             </div>
                             <div class="buy-btn">
-                                ${(new Date(course.endDate.split('-').reverse().join('-')) < new Date()) 
-                                    ? '<span class="text-danger">Curso Finalizado</span>' 
-                                    : (new Date(course.startDate.split('-').reverse().join('-')) <= new Date()) 
-                                        ? '<span class="text-danger">Curso Iniciado</span>' 
-                                        : (course.students === 0 
-                                            ? '<span class="text-danger">Agotado</span>' 
-                                            : `<a href="#" class="btn btn-main-2 btn-small" onclick="openMatriculaModal(${course.id})">Matricular</a>`)}
+                                ${
+                                    (new Date(course.endDate.split('-').reverse().join('-')) < new Date())
+                                        ? '<span class="text-danger">Curso Finalizado</span>'
+                                        : (new Date(course.startDate.split('-').reverse().join('-')) <= new Date() && course.FueraTiempo === 0)
+                                            ? '<span class="text-danger">Curso Iniciado</span>'
+                                            : (course.students === 0
+                                                ? '<span class="text-danger">Agotado</span>'
+                                                : `<a href="#" class="btn btn-main-2 btn-small" onclick="openMatriculaModal(${course.id})">Matricular</a>`)
+                                }
                             </div>
 
 
